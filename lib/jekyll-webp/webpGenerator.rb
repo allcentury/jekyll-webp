@@ -1,5 +1,6 @@
-require 'jekyll/document'
+require 'jekyll'
 require 'fileutils'
+require 'forwardable'
 
 module Jekyll
   module Webp
@@ -73,34 +74,41 @@ module Jekyll
 
               # TODO: Do an exclude check
 
-              # Create the output file path
-              outfile_filename = if @config['append_ext']
-                File.basename(imgfile) + '.webp'
-              else
-                file_noext = File.basename(imgfile, file_ext)
-                file_noext + ".webp"
-              end
-              FileUtils::mkdir_p(imgdir_destination + imgfile_relative_path)
-              outfile_fullpath_webp = File.join(imgdir_destination + imgfile_relative_path, outfile_filename)
 
-              # Check if the file already has a webp alternative?
-              # If we're force rebuilding all webp files then ignore the check
-              # also check the modified time on the files to ensure that the webp file
-              # is newer than the source file, if not then regenerate
-              if @config['regenerate'] || !File.file?(outfile_fullpath_webp) ||
-                 File.mtime(outfile_fullpath_webp) <= File.mtime(imgfile)
-                Jekyll.logger.info "WebP:", "Change to source image file #{imgfile} detected, regenerating WebP"
+              # This line allows for backwards compatability where the config file has one value or an array
+              qualities = [@config["quality"]].flatten
 
-                # Generate the file
-                WebpExec.run(@config['quality'], @config['flags'], imgfile, outfile_fullpath_webp)
-                file_count += 1
-              end
-              if File.file?(outfile_fullpath_webp)
-                # Keep the webp file from being cleaned by Jekyll
-                site.static_files << WebpFile.new(site,
-                                                  site.dest,
-                                                  File.join(imgdir, imgfile_relative_path),
-                                                  outfile_filename)
+              qualities.each do |quality|
+                # Create the output file path
+                outfile_filename = if @config['append_ext']
+                  "#{File.basename(imgfile)}-#{quality}.webp"
+                else
+                  file_noext = File.basename(imgfile, file_ext)
+                  "#{file_noext}-#{quality}.webp"
+                end
+
+                FileUtils::mkdir_p(imgdir_destination + imgfile_relative_path)
+                outfile_fullpath_webp = File.join(imgdir_destination + imgfile_relative_path, outfile_filename)
+
+                # Check if the file already has a webp alternative?
+                # If we're force rebuilding all webp files then ignore the check
+                # also check the modified time on the files to ensure that the webp file
+                # is newer than the source file, if not then regenerate
+                if @config['regenerate'] || !File.file?(outfile_fullpath_webp) ||
+                    File.mtime(outfile_fullpath_webp) <= File.mtime(imgfile)
+                  Jekyll.logger.info "WebP:", "Change to source image file #{imgfile} detected, regenerating WebP"
+
+                  # Generate the file
+                  WebpExec.run(quality, @config['flags'], imgfile, outfile_fullpath_webp)
+                  file_count += 1
+                end
+                if File.file?(outfile_fullpath_webp)
+                  # Keep the webp file from being cleaned by Jekyll
+                  site.static_files << WebpFile.new(site,
+                                                    site.dest,
+                                                    File.join(imgdir, imgfile_relative_path),
+                                                    outfile_filename)
+                end
               end
           end # dir.foreach
         end # img_dir
