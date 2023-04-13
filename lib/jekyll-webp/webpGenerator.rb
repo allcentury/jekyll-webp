@@ -59,7 +59,7 @@ module Jekyll
 
             # Generate the file
             WebpExec.run(@config['quality'], @config['flags'], imgfile, outfile_fullpath_webp, @config['webp_path'])
-            file_count += 1
+            # file_count += 1
           end
           if File.file?(outfile_fullpath_webp)
             # Keep the webp file from being cleaned by Jekyll
@@ -69,12 +69,9 @@ module Jekyll
                                               outfile_filename)
           end
         end # dir.foreach
+        # Jekyll.logger.info "WebP:","Generator Complete: #{file_count} file(s) generated"
       end # img_dir
 
-        Jekyll.logger.info "WebP:","Generator Complete: #{file_count} file(s) generated"
-
-
-      end
 
       # Generate paginated pages if necessary (Default entry point)
       # site - The Site.
