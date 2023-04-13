@@ -114,6 +114,7 @@ module Jekyll
         end #function generate
 
         threads.each(&:join)
+      end
 
     end #class WebPGenerator
 
