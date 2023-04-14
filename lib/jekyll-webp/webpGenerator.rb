@@ -1,4 +1,3 @@
-require 'jekyll/document'
 require 'fileutils'
 
 module Jekyll
@@ -7,13 +6,13 @@ module Jekyll
     #
     # A static file to hold the generated webp image after generation
     # so that Jekyll will copy it into the site output directory
-    class WebpFile < StaticFile
+    class WebpFile < ::Jekyll::StaticFile
       def write(dest)
         true # Recover from strange exception when starting server without --auto
       end
     end #class WebpFile
 
-    class WebpGenerator < Generator
+    class WebpGenerator < ::Jekyll::Generator
       # This generator is safe from arbitrary code execution.
       safe true
 
@@ -21,7 +20,7 @@ module Jekyll
       priority :lowest
 
 
-      def process_img(imgdir, site)
+      def process_img(imgdir, site, threads)
         imgdir_source = File.join(site.source, imgdir)
         imgdir_destination = File.join(site.dest, imgdir)
         FileUtils::mkdir_p(imgdir_destination)
@@ -58,9 +57,12 @@ module Jekyll
             Jekyll.logger.info "WebP:", "Change to source image file #{imgfile} detected, regenerating WebP"
 
             # Generate the file
-            WebpExec.run(@config['quality'], @config['flags'], imgfile, outfile_fullpath_webp, @config['webp_path'])
-            # file_count += 1
+            threads << Thread.new do
+              WebpExec.run(@config['quality'], @config['flags'], imgfile, outfile_fullpath_webp, @config['webp_path'])
+              # file_count += 1
+            end
           end
+
           if File.file?(outfile_fullpath_webp)
             # Keep the webp file from being cleaned by Jekyll
             site.static_files << WebpFile.new(site,
@@ -110,8 +112,10 @@ module Jekyll
         # if one has not been created already for that image.
         threads = []
         for imgdir in @config['img_dir']
-          threads << Thread.new {process_img(site, imgdir) }
+          process_img(imgdir, site, threads)
         end #function generate
+
+        puts "Thread count: #{threads.size}"
 
         threads.each(&:join)
       end

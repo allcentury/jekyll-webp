@@ -1,0 +1,3 @@
+*.swp
+*.tool-versions
+Gemfile.lock

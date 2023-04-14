@@ -6,3 +6,7 @@ gemspec
 if ENV["JEKYLL_VERSION"]
   gem "jekyll", "~> #{ENV["JEKYLL_VERSION"]}"
 end
+
+group :development do
+  gem "pry"
+end
