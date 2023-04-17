@@ -48,6 +48,7 @@ module Jekyll
           FileUtils::mkdir_p(imgdir_destination + imgfile_relative_path)
           outfile_fullpath_webp = File.join(imgdir_destination + imgfile_relative_path, outfile_filename)
 
+          Jekyll.logger.info("WEBP CONFIG: #{@config}")
           # Check if the file already has a webp alternative?
           # If we're force rebuilding all webp files then ignore the check
           # also check the modified time on the files to ensure that the webp file
@@ -56,6 +57,7 @@ module Jekyll
               File.mtime(outfile_fullpath_webp) <= File.mtime(imgfile)
             Jekyll.logger.info "WebP:", "Change to source image file #{imgfile} detected, regenerating WebP"
 
+            puts "Regenerating imgfile"
             # Generate the file
             threads << Thread.new do
               WebpExec.run(@config['quality'], @config['flags'], imgfile, outfile_fullpath_webp, @config['webp_path'])
@@ -80,27 +82,33 @@ module Jekyll
       #
       # Returns nothing.
       def generate(site)
+        puts "Hello?"
 
         # Retrieve and merge the configuration from the site yml file
         @config = DEFAULT.merge(site.config['webp'] || {})
 
+        puts @config
         # If disabled then simply quit
         if !@config['enabled']
           Jekyll.logger.info "WebP:","Disabled in site.config."
           return
         end
 
+        puts "starting"
         Jekyll.logger.debug "WebP:","Starting"
 
         # If the site destination directory has not yet been created then create it now. Otherwise, we cannot write our file there.
         Dir::mkdir(site.dest) if !File.directory? site.dest
 
+          require 'pry'
         # If nesting is enabled, get all the nested directories too
         if @config['nested']
           newdir = []
           for imgdir in @config['img_dir']
             # Get every directory below (and including) imgdir, recursively
-            newdir.concat(Dir.glob(imgdir + "/**/"))
+            # jy
+            formatted = Dir.glob("." + imgdir + "/**/").map { |el| el[1..-1] }
+            newdir += formatted
           end
           @config['img_dir'] = newdir
         end
@@ -111,10 +119,11 @@ module Jekyll
         # Iterate through every image in each of the image folders and create a webp image
         # if one has not been created already for that image.
         threads = []
-        for imgdir in @config['img_dir']
+        puts "calling before loop"
+        @config['img_dir'].each do |imgdir|
+          puts "calling"
           process_img(imgdir, site, threads)
-        end #function generate
-
+        end
         puts "Thread count: #{threads.size}"
 
         threads.each(&:join)
