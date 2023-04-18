@@ -43,7 +43,11 @@ module Jekyll
 
       # List of files or directories to explicitly include
       # e.g. single files outside of the main image directories
-      'include'   => []
+      'include'   => [],
+
+      # Whether to use a thread pool
+      'async' => false,
+
     }
 
   end # module Webp
