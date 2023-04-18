@@ -57,7 +57,6 @@ module Jekyll
               File.mtime(outfile_fullpath_webp) <= File.mtime(imgfile)
             Jekyll.logger.info "WebP:", "Change to source image file #{imgfile} detected, regenerating WebP"
 
-            puts "Regenerating imgfile"
             # Generate the file
             threads << Thread.new do
               WebpExec.run(@config['quality'], @config['flags'], imgfile, outfile_fullpath_webp, @config['webp_path'])
@@ -82,19 +81,16 @@ module Jekyll
       #
       # Returns nothing.
       def generate(site)
-        puts "Hello?"
 
         # Retrieve and merge the configuration from the site yml file
         @config = DEFAULT.merge(site.config['webp'] || {})
 
-        puts @config
         # If disabled then simply quit
         if !@config['enabled']
           Jekyll.logger.info "WebP:","Disabled in site.config."
           return
         end
 
-        puts "starting"
         Jekyll.logger.debug "WebP:","Starting"
 
         # If the site destination directory has not yet been created then create it now. Otherwise, we cannot write our file there.
@@ -118,12 +114,10 @@ module Jekyll
         # Iterate through every image in each of the image folders and create a webp image
         # if one has not been created already for that image.
         threads = []
-        puts "calling before loop"
         @config['img_dir'].each do |imgdir|
-          puts "calling"
           process_img(imgdir, site, threads)
         end
-        puts "Thread count: #{threads.size}"
+        Jekyll.logger.info "Thread count: #{threads.size}"
 
         threads.each(&:join)
       end

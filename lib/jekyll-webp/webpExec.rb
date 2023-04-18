@@ -34,7 +34,7 @@ module Jekyll
         exit_code = 0
         error = ""
         output = ""
-        puts "CMD: #{cmd}"
+        Jekyll.logger.debug "CMD: #{cmd}"
 
         Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
           stdin.close # we don't pass any input to the process
