@@ -100,7 +100,6 @@ module Jekyll
         # If the site destination directory has not yet been created then create it now. Otherwise, we cannot write our file there.
         Dir::mkdir(site.dest) if !File.directory? site.dest
 
-          require 'pry'
         # If nesting is enabled, get all the nested directories too
         if @config['nested']
           newdir = []
