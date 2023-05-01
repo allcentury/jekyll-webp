@@ -23,4 +23,23 @@ RSpec.describe Jekyll::Webp::WebpGenerator do
       described_class.new.generate(site)
     end
   end
+
+  context "file globbing" do
+    let(:files) do
+      [
+        "file1.txt",
+        "img.png",
+      ]
+    end
+    it "looks in a directory for a specified file" do
+      allow(Dir).to receive(:glob).and_return(files)
+
+      gen = described_class.new
+      gen.set_config(site)
+      matched = gen.find_files
+      expect(matched).to eq(["img.png"])
+    end
+    it "filters for extensions"
+    it "goes nested"
+  end
 end
