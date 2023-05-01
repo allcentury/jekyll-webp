@@ -57,6 +57,7 @@ module Jekyll
 
         files = find_files(site)
         puts "--------------"
+        Jekyll.logger.info "Files to generate: #{files}"
         pp files
         puts "--------------"
 
